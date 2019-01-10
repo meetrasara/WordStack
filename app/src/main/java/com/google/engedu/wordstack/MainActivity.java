@@ -35,15 +35,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int WORD_LENGTH = 5;
+    private static final int WORD_LENGTH = 3;
+    private int difficulty = WORD_LENGTH;
     public static final int LIGHT_BLUE = Color.rgb(176, 200, 255);
     public static final int LIGHT_GREEN = Color.rgb(200, 255, 200);
     private ArrayList<String> words = new ArrayList<>();
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private Stack<LetterTile> placedTiles = new Stack<>();
     private LinearLayout word1LL;
     private LinearLayout word2LL;
+    private Map<Integer, ArrayList<String>> wordMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +71,16 @@ public class MainActivity extends AppCompatActivity {
             String line = null;
             while((line = in.readLine()) != null) {
                 String word = line.trim();
-                if(word.length() == WORD_LENGTH){
-                    words.add(word);
-                    wordSet.add(word);
+                wordSet.add(word);
+
+                int length = word.length();
+                if(wordMap.containsKey(length)){
+                    wordMap.get(length).add(word);
+                }
+                else {
+                    ArrayList<String> newList = new ArrayList<>();
+                    newList.add(word);
+                    wordMap.put(length, newList);
                 }
             }
         } catch (IOException e) {
@@ -169,13 +181,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             TextView endMsg = findViewById(R.id.endMessage);
-            if(wordSet.contains(word1) && wordSet.contains(word2)){
+            if(wordSet.contains(word1) && wordSet.contains(word2) && word1.length() == difficulty && word2.length() == difficulty){
                 endMsg.setText("You won!!");
                 endMsg.setVisibility(View.VISIBLE);
                 TextView messageBox = (TextView) findViewById(R.id.message_box);
                 messageBox.setText(word1 + " " + word2);
                 Button undoButton = findViewById(R.id.button);
                 undoButton.setEnabled(false);
+                difficulty += 1;
             }
 
 
@@ -186,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onStartGame(View view) {
 
+        words = wordMap.get(difficulty);
         TextView endMsg = findViewById(R.id.endMessage);
         endMsg.setVisibility(View.INVISIBLE);
 
@@ -225,11 +239,11 @@ public class MainActivity extends AppCompatActivity {
 
         int counter1 = 0;
         int counter2 = 0;
-        char[] letterArray = new char[WORD_LENGTH*2];
+        char[] letterArray = new char[difficulty*2];
         int arrayCount = 0;
 
-        while(counter1 < WORD_LENGTH || counter2 < WORD_LENGTH){
-            if((random.nextBoolean() && counter1 < WORD_LENGTH) || counter2 >= WORD_LENGTH){
+        while(counter1 < difficulty || counter2 < difficulty){
+            if((random.nextBoolean() && counter1 < difficulty) || counter2 >= difficulty){
                 letterArray[arrayCount] = word1.charAt(counter1);
                 counter1++;
             }
